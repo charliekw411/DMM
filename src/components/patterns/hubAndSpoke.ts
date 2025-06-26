@@ -61,5 +61,6 @@ export default {
   name,
   type,
   inputs,
+  description: "Creates a Hub network with VNet, Subnet, Firewall, NSG, and Route Table, plus an embedded Spoke.",
   create,
 };

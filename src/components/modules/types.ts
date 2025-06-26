@@ -9,7 +9,8 @@ export type ModuleType =
 export type PatternModule = {
   name: string;
   description?: string;
-  module?: () => Module[];
+  inputs?: string[];
+  create: (values: Record<string, string>) => Module[];
 };
 
 export type Module = {

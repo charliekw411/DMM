@@ -42,5 +42,6 @@ export default {
   name,
   type,
   inputs,
+  description: "Creates a VNet, Subnet, and NSG inside a Resource Group.",
   create,
 };

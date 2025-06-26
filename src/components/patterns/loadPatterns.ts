@@ -1,11 +1,16 @@
 import { PatternModule } from "../modules/types";
-import * as spoke from "./spoke";
-import * as hubAndSpoke from "./hubAndSpoke";
+
+const patternFiles = import.meta.glob("./*.ts", { eager: true });
+
+const patterns = import.meta.glob("./!(*index).ts", {
+  eager: true,
+}) as Record<string, { default: PatternModule }>;
 
 export function loadPatterns(): PatternModule[] {
-  return [spoke, hubAndSpoke];
+  return Object.values(patterns)
+    .map((mod) => mod.default)
+    .filter((mod) => mod && mod.name && mod.create);
 }
-const patternFiles = import.meta.glob("./*.ts", { eager: true });
 
 export const loadedPatterns = Object.entries(patternFiles)
   .map(([path, mod]: any) => {

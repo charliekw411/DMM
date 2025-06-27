@@ -7,35 +7,44 @@ import { Module } from "../modules/types";
 
 export const name = "Spoke Network";
 export const type = "spoke";
+export const inputs = ["name"];
 
-export const inputs = ["name"]; // expected from user on add
-
-export function create(values: Record<string, string>): Module[] {
+export function create(values: Record<string, string>): {
+  modules: Module[];
+  connections: { from: string; to: string; type: "subnet-association" | "dependency" }[];
+} {
   const modules: Module[] = [];
+  const connections: { from: string; to: string; type: "subnet-association" | "dependency" }[] = [];
 
   const startX = 200;
   const startY = 200;
 
-  // 1. Resource Group
+  // Resource Group
   const rg = createResourceGroup(`${values.name}-rg`, startX, startY);
   modules.push(rg);
 
-  // 2. VNet
+  // VNet
   const vnet = createVNet(`${values.name}-vnet`, startX + 40, startY + 40);
   vnet.resourceGroup = rg.id;
   modules.push(vnet);
 
-  // 3. Subnet
+  // Subnet
   const subnet = createSubnet(`${values.name}-subnet`, vnet.id, startX + 120, startY + 120);
   subnet.resourceGroup = rg.id;
   modules.push(subnet);
 
-  // 4. NSG
+  // NSG
   const nsg = createNSG(`${values.name}-nsg`, startX + 80, startY + 180);
   nsg.resourceGroup = rg.id;
   modules.push(nsg);
 
-  return modules;
+  // Connections
+  connections.push(
+    { from: subnet.id, to: vnet.id, type: "subnet-association" },
+    { from: subnet.id, to: nsg.id, type: "dependency" }
+  );
+
+  return { modules, connections };
 }
 
 export default {

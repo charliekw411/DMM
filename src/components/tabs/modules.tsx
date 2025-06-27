@@ -1,12 +1,10 @@
-// src/components/tabs/modules.tsx
 import React, { useState } from "react";
 import { useApp } from "../context/appContext";
 import { Module, ModuleType } from "../modules/types";
-import { moduleVariableSchemas } from "../modules/variableschemas";
+import { moduleVariableSchemas } from "../modules/variableSchemas";
 import { ICONS } from "../modules/icons";
 import { v4 as uuidv4 } from "uuid";
 
-// Load modules dynamically (excluding utils & types)
 const modules = import.meta.glob("../modules/!(*utils|types).ts", {
   eager: true,
 }) as Record<string, { default: any }>;
@@ -24,14 +22,16 @@ const ModulesTab: React.FC = () => {
     if (!selectedModule) return;
 
     const id = uuidv4();
+    const nameKey = Object.keys(form).find((k) => k.toLowerCase().includes("name"));
+    const displayName = nameKey ? form[nameKey] : selectedModule.name;
+
     const newModule: Module = {
       id,
       type: selectedModule.type as ModuleType,
-      name: selectedModule.name,
+      name: displayName,
       position: { x: 100, y: 100 },
       variables: form,
     };
-
     setConfig({ ...config, modules: [...config.modules, newModule] });
     setSelectedModule(null);
     setForm({});

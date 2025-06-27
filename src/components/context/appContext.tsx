@@ -1,65 +1,34 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { Module } from "../modules/types";
 
-export type ProjectConfig = {
-  tenantId: string;
-  subscriptionId: string;
-  platform: string;
-  environment: string;
-  tags: { name: string; value: string }[];
-};
+export interface Connection {
+  from: string;
+  to: string;
+  type?: "subnet-association" | "peering" | "dependency";
+}
 
-export type AppConfig = {
-  project: ProjectConfig;
+export interface AppConfig {
   modules: Module[];
-};
+  connections: Connection[]; // added
+}
 
-const defaultConfig: AppConfig = {
-  project: {
-    tenantId: "",
-    subscriptionId: "",
-    platform: "",
-    environment: "",
-    tags: [],
-  },
-  modules: [],
-};
-
-const CONFIG_KEY = "appConfig";
-
-const AppContext = createContext<{
+interface AppContextType {
   config: AppConfig;
   setConfig: (config: AppConfig) => void;
-}>({
+}
+
+const defaultConfig: AppConfig = {
+  modules: [],
+  connections: []
+};
+
+const AppContext = createContext<AppContextType>({
   config: defaultConfig,
-  setConfig: () => {},
+  setConfig: () => {}
 });
 
-export const useApp = () => useContext(AppContext);
-
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [config, setConfigState] = useState<AppConfig>(defaultConfig);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(CONFIG_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        // Ensure tags is an array (backward compatibility)
-        if (!Array.isArray(parsed.project?.tags)) {
-          parsed.project.tags = [];
-        }
-        setConfigState(parsed);
-      } catch {
-        console.warn("Invalid config in localStorage");
-      }
-    }
-  }, []);
-
-  const setConfig = (c: AppConfig) => {
-    setConfigState(c);
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(c));
-  };
+  const [config, setConfig] = useState<AppConfig>(defaultConfig);
 
   return (
     <AppContext.Provider value={{ config, setConfig }}>
@@ -67,3 +36,5 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     </AppContext.Provider>
   );
 };
+
+export const useApp = () => useContext(AppContext);

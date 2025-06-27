@@ -1,66 +1,166 @@
-// src/components/patterns/hubAndSpoke.ts
-import { createResourceGroup } from "../modules/resourcegroup";
-import { createVNet } from "../modules/vnet";
-import { createSubnet } from "../modules/subnet";
-import { createNSG } from "../modules/nsg";
-import { createFirewall } from "../modules/firewall";
-import { createRouteTable } from "../modules/routetable";
 import { Module } from "../modules/types";
-import createSpokePattern from "./spoke";
+import { v4 as uuid } from "uuid";
 
-export const name = "Hub & Spoke Network";
-export const type = "hubAndSpoke";
+export const hubAndSpoke = {
+  name: "Hub & Spoke",
+  description: "Deploys a hub VNet with firewall and NSG, peered with a spoke VNet and its own NSG.",
+  create: (): {
+    modules: Module[];
+    connections: {
+      from: string;
+      to: string;
+      type: "subnet-association" | "dependency" | "peering";
+    }[];
+  } => {
+    // 🔷 Resource Groups
+    const hubRg: Module = {
+      id: uuid(),
+      type: "resourceGroup",
+      name: "hub-rg",
+      position: { x: 100, y: 100 },
+      variables: { resourceGroupName: "hub-rg" },
+      width: 300,
+      height: 260,
+    };
 
-export const inputs = ["name"];
+    const spokeRg: Module = {
+      id: uuid(),
+      type: "resourceGroup",
+      name: "spoke-rg",
+      position: { x: 500, y: 100 },
+      variables: { resourceGroupName: "spoke-rg" },
+      width: 300,
+      height: 260,
+    };
 
-export function create(values: Record<string, string>): Module[] {
-  const modules: Module[] = [];
-  const startX = 200;
-  const startY = 200;
+    // 🔷 VNets
+    const hubVnet: Module = {
+      id: uuid(),
+      type: "vnet",
+      name: "hub-vnet",
+      position: { x: 20, y: 40 },
+      resourceGroup: hubRg.id,
+      variables: {
+        vnetName: "hub-vnet",
+        addressSpace: "10.0.0.0/16",
+      },
+    };
 
-  // Hub RG
-  const hubRG = createResourceGroup(`${values.name}-hub-rg`, startX, startY);
-  modules.push(hubRG);
+    const spokeVnet: Module = {
+      id: uuid(),
+      type: "vnet",
+      name: "spoke-vnet",
+      position: { x: 20, y: 40 },
+      resourceGroup: spokeRg.id,
+      variables: {
+        vnetName: "spoke-vnet",
+        addressSpace: "10.1.0.0/16",
+      },
+    };
 
-  // Hub VNet
-  const hubVNet = createVNet(`${values.name}-hub-vnet`, startX + 40, startY + 40);
-  hubVNet.resourceGroup = hubRG.id;
-  modules.push(hubVNet);
+    // 🔷 Subnets
+    const hubSubnet: Module = {
+      id: uuid(),
+      type: "subnet",
+      name: "hub-subnet",
+      position: { x: 180, y: 40 },
+      resourceGroup: hubRg.id,
+      variables: {
+        subnetName: "hub-subnet",
+        addressPrefix: "10.0.1.0/24",
+      },
+    };
 
-  // Hub Subnet
-  const hubSubnet = createSubnet(`${values.name}-subnet`, hubVNet.id, startX + 140, startY + 100);
-  hubSubnet.resourceGroup = hubRG.id;
-  modules.push(hubSubnet);
+    const fwSubnet: Module = {
+      id: uuid(),
+      type: "subnet",
+      name: "AzureFirewallSubnet",
+      position: { x: 240, y: 120 },
+      resourceGroup: hubRg.id,
+      variables: {
+        subnetName: "AzureFirewallSubnet",
+        addressPrefix: "10.0.2.0/24",
+      },
+    };
 
-  // NSG
-  const hubNSG = createNSG(`${values.name}-nsg`, startX + 60, startY + 160);
-  hubNSG.resourceGroup = hubRG.id;
-  modules.push(hubNSG);
+    const spokeSubnet: Module = {
+      id: uuid(),
+      type: "subnet",
+      name: "spoke-subnet",
+      position: { x: 180, y: 40 },
+      resourceGroup: spokeRg.id,
+      variables: {
+        subnetName: "spoke-subnet",
+        addressPrefix: "10.1.1.0/24",
+      },
+    };
 
-  // Firewall
-  const firewall = createFirewall(`${values.name}-fw`, startX + 200, startY + 80);
-  firewall.resourceGroup = hubRG.id;
-  modules.push(firewall);
+    // 🔷 NSGs
+    const hubNsg: Module = {
+      id: uuid(),
+      type: "nsg",
+      name: "hub-nsg",
+      position: { x: 180, y: 120 },
+      resourceGroup: hubRg.id,
+      variables: {
+        nsgName: "hub-nsg",
+      },
+    };
 
-  // Route Table
-  const routeTable = createRouteTable(`${values.name}-rt`, startX + 100, startY + 220);
-  routeTable.resourceGroup = hubRG.id;
-  modules.push(routeTable);
+    const spokeNsg: Module = {
+      id: uuid(),
+      type: "nsg",
+      name: "spoke-nsg",
+      position: { x: 180, y: 120 },
+      resourceGroup: spokeRg.id,
+      variables: {
+        nsgName: "spoke-nsg",
+      },
+    };
 
-  // Spoke pattern (embedded)
-  const spokeModules = createSpokePattern.create({
-    name: `${values.name}-spoke`,
-  });
+    // 🔷 Firewall
+    const firewall: Module = {
+      id: uuid(),
+      type: "firewall",
+      name: "hub-fw",
+      position: { x: 60, y: 120 },
+      resourceGroup: hubRg.id,
+      variables: {
+        firewallName: "hub-fw",
+      },
+    };
 
-  modules.push(...spokeModules);
+    // 🔷 All Modules
+    const modules: Module[] = [
+      hubRg,
+      spokeRg,
+      hubVnet,
+      spokeVnet,
+      hubSubnet,
+      spokeSubnet,
+      fwSubnet,
+      hubNsg,
+      spokeNsg,
+      firewall,
+    ];
 
-  return modules;
-}
+    // 🔷 Typed Connections
+    const connections: {
+      from: string;
+      to: string;
+      type: "subnet-association" | "dependency" | "peering";
+    }[] = [
+      { from: hubSubnet.id, to: hubVnet.id, type: "subnet-association" },
+      { from: hubSubnet.id, to: hubNsg.id, type: "dependency" },
+      { from: fwSubnet.id, to: hubVnet.id, type: "subnet-association" },
+      { from: firewall.id, to: fwSubnet.id, type: "dependency" },
+      { from: spokeSubnet.id, to: spokeVnet.id, type: "subnet-association" },
+      { from: spokeSubnet.id, to: spokeNsg.id, type: "dependency" },
+      { from: spokeVnet.id, to: hubVnet.id, type: "peering" },
+    ];
 
-export default {
-  name,
-  type,
-  inputs,
-  description: "Creates a Hub network with VNet, Subnet, Firewall, NSG, and Route Table, plus an embedded Spoke.",
-  create,
+    return { modules, connections };
+  },
 };
+
+export default hubAndSpoke;

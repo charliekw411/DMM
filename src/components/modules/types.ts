@@ -6,12 +6,21 @@ export type ModuleType =
   | "routeTable"
   | "resourceGroup";
 
-export type PatternModule = {
+export interface PatternModule {
   name: string;
-  description?: string;
-  inputs?: string[];
-  create: (values: Record<string, string>) => Module[];
-};
+  description: string;
+  inputs: string[];
+  create: (inputs: Record<string, string>) => {
+    modules: Module[];
+    connections: Connection[];
+  };
+}
+
+export interface Connection {
+  from: string;
+  to: string;
+  type?: "subnet-association" | "peering" | "dependency";
+}
 
 export type Module = {
   id: string;
@@ -24,7 +33,6 @@ export type Module = {
   width?: number;
   height?: number;
   error?: string | null;
-  //error: error || undefined;
 };
 
 export interface ResourceGroup {

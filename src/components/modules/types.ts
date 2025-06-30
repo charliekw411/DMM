@@ -1,45 +1,36 @@
+import type { VariableSchema } from "../common/ModuleConfigModal";
+
 export type ModuleType =
   | "vnet"
   | "subnet"
   | "nsg"
   | "firewall"
-  | "routeTable"
-  | "resourceGroup";
+  | "resourcegroup"
+  | "routetable";
 
-export interface PatternModule {
+export type ConnectionType = "subnet-association" | "dependency" | "peering";
+
+export interface Module {
+  id: string;
   name: string;
-  description: string;
-  inputs: string[];
-  create: (inputs: Record<string, string>) => {
-    modules: Module[];
-    connections: Connection[];
-  };
+  type: ModuleType;
+  position: { x: number; y: number };
+  width?: number;                     
+  height?: number;
+
+  variables: Record<string, string>;
+  resourcegroup?: string;
 }
 
 export interface Connection {
   from: string;
   to: string;
-  type?: "subnet-association" | "peering" | "dependency";
+  type: ConnectionType;
 }
 
-export type Module = {
-  id: string;
+export interface ModuleDefinition {
+  name: string;
   type: ModuleType;
-  name: string;
-  position: { x: number; y: number };
-  variables?: Record<string, any>;
-  resourceGroup?: string;
-  parentId?: string;
-  width?: number;
-  height?: number;
-  error?: string | null;
-};
-
-export interface ResourceGroup {
-  id: string;
-  name: string;
-  position: { x: number; y: number };
-  width?: number;
-  height?: number;
-  moduleIds: string[];
+  defaultVariables?: Record<string, string>;
+  variableSchema: VariableSchema;
 }

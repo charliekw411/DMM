@@ -1,92 +1,110 @@
 import { Module } from "../../components/modules/types";
+import { moduleVersions } from "../moduleVersions";
+
+type BicepContext = {
+  subnets?: Module[];
+  nsgBySubnet?: Record<string, string>;
+  dependsOn?: string[];
+};
 
 export function generateBicepModule(
   mod: Module,
-  context: {
-    subnets?: Module[];
-    nsgBySubnet?: Record<string, string>;
-  }
+  scope: string,
+  context: BicepContext = {}
 ): string {
-  const { variables } = mod;
+  const nameSafe = mod.name.replace(/[^a-zA-Z0-9]/g, "");
+  const dependsOnBlock =
+    context.dependsOn && context.dependsOn.length > 0
+      ? `\n  dependsOn: [${context.dependsOn.join(", ")}]`
+      : "";
 
-  if (mod.type === "vnet") {
-    const subnets = context.subnets ?? [];
-    const subnetBlocks = subnets
-      .map((subnet) => {
-        const subnetName = subnet.variables?.subnetName || subnet.name;
-        const addressPrefix = subnet.variables?.addressPrefix || "10.0.1.0/24";
-        const nsgId = context.nsgBySubnet?.[subnet.id];
-        
+  const version = (type: string) =>
+    moduleVersions[type] || "0.1.0";
 
-        const nsgRef = nsgId
-          ? `
-            networkSecurityGroup: {
-              id: resourceId('Microsoft.Network/networkSecurityGroups', '${nsgId}')
-            }`
-          : "";
-
+  switch (mod.type) {
+        case "vnet": {
+      const subnets = (context.subnets ?? []).map((sub) => {
+        const nsgName = context.nsgBySubnet?.[sub.id];
         return `{
-          name: '${subnetName}'
-          properties: {
-            addressPrefix: '${addressPrefix}'${nsgRef}
+          name: '${sub.name}'
+          addressPrefix: '${sub.variables?.addressPrefix ?? "10.0.1.0/24"}'${
+            nsgName
+              ? `\n          networkSecurityGroup: {\n            id: resourceId('Microsoft.Network/networkSecurityGroups', '${nsgName}')\n          }`
+              : ""
           }
         }`;
-      })
-      .join(",\n");
+      });
 
-    const vnetName = variables?.vnetName || mod.name;
-    const addressSpace = variables?.addressSpace || "10.0.0.0/16";
-    
-    return `resource ${vnetName} 'Microsoft.Network/virtualNetworks@2020-11-01' = {
-    name: '${vnetName}'
-    location: resourceGroup().location
-    properties: {
-      addressSpace: {
-        addressPrefixes: [
-          '${addressSpace}'
-        ]
-    }
+      return `module ${nameSafe} 'br/public:avm/res/network/virtual-network:${version(
+        "virtual-network"
+      )}' = {
+  name: '${nameSafe}Deployment'
+  scope: ${scope}
+  params: {
+    name: '${mod.name}'
+    location: location
+    tags: tags
+    addressPrefixes: ['${mod.variables?.addressPrefix ?? "10.0.0.0/16"}']
     subnets: [
-      ${subnetBlocks}
+      ${subnets.join(",\n      ")}
     ]
+  }${dependsOnBlock}
+}`;
+    }
+    case "nsg":
+      return `module ${nameSafe} 'br/public:avm/res/network/network-security-group:${version(
+        "network-security-group"
+      )}' = {
+  name: '${nameSafe}Deployment'
+  scope: ${scope}
+  params: {
+    name: '${mod.name}'
+    location: location
+    tags: tags
+  }${dependsOnBlock}
+}`;
+
+    case "subnet":
+      return `// Subnet ${mod.name} is handled as part of VNet subnets list`;
+
+    case "firewall":
+      return `module ${nameSafe} 'br/public:avm/res/network/azure-firewall:${version(
+        "firewall"
+      )}' = {
+  name: '${nameSafe}Deployment'
+  scope: ${scope}
+  params: {
+    name: '${mod.name}'
+    location: location
+    tags: tags
+    properties: {
+      sku: {
+        name: '${mod.variables?.sku ?? "AZFW_VNet"}'
+        tier: '${mod.variables?.tier ?? "Standard"}'
+      }
+      // Adjust this subnet config if AzureFirewallSubnet not found in canvas
+    }
+  }${dependsOnBlock}
+}`;
+
+    case "routetable":
+      return `module ${nameSafe} 'br/public:avm/res/network/route-table:${version(
+        "routetable"
+      )}' = {
+  name: '${nameSafe}Deployment'
+  scope: ${scope}
+  params: {
+    name: '${mod.name}'
+    location: location
+    tags: tags
+    properties: {
+      disableBgpRoutePropagation: false
+      routes: []
+    }
+  }${dependsOnBlock}
+}`;
+
+    default:
+      return `// Unsupported module type: ${mod.type}`;
   }
-}
-
-`;
-  }
-
-  if (mod.type === "nsg") {
-    const nsgName = variables?.nsgName || mod.name;
-    return `resource ${nsgName} 'Microsoft.Network/networkSecurityGroups@2020-11-01' = {
-  name: '${nsgName}'
-  location: resourceGroup().location
-  properties: {}
-}
-
-`;
-  }
-
-  if (mod.type === "subnet") {
-    // Shouldn't reach here — subnets are included in vnet blocks
-    return "";
-  }
-
-  if (mod.type === "firewall") {
-    const fwName = variables?.firewallName || mod.name;
-    return `resource ${fwName} 'Microsoft.Network/azureFirewalls@2020-11-01' = {
-  name: '${fwName}'
-  location: resourceGroup().location
-  properties: {
-    sku: {
-      name: 'AZFW_VNet'
-      tier: 'Standard'
-    },
-    ipConfigurations: []
-  }
-}
-
-`;
-  }
-
-  return `// Unknown module type: ${mod.type}\n`;
 }

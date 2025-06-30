@@ -1,27 +1,26 @@
-// src/components/modules/firewall.ts
-import { FirewallIcon } from "./icons";
-import { Module, ModuleType } from "./types";
-import { v4 as uuidv4 } from "uuid";
+import { ModuleDefinition } from "./types";
 
-export function createFirewall(name: string, x: number, y: number): Module {
-  return {
-    id: uuidv4(),
-    type: "firewall",
-    name,
-    position: { x, y },
-    variables: {
-      name,
-      addressPrefix: "10.0.2.0/24", // must match AzureFirewallSubnet name
-    },
-  };
-}
-
-export default {
-  name: "Azure Firewall",
-  type: "firewall" as ModuleType,
-  icon: FirewallIcon,
+export const moduleDefinition: ModuleDefinition = {
+  name: "Firewall",
+  type: "firewall",
   defaultVariables: {
-    name: "fw-main",
-    addressPrefix: "10.0.2.0/24",
+    firewallName: "azfw",
+    subnetId: "", // must be populated at runtime
+  },
+  variableSchema: {
+    firewallName: {
+      label: "Firewall Name",
+      type: "string",
+      required: true,
+      description: "The name of the Azure Firewall resource",
+    },
+    subnetId: {
+      label: "Subnet ID",
+      type: "string",
+      required: true,
+      description: "The ID of the subnet where the firewall will be deployed (must be AzureFirewallSubnet)",
+    },
   },
 };
+
+export default { moduleDefinition };

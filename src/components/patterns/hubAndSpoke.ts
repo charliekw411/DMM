@@ -15,20 +15,20 @@ export const hubAndSpoke = {
     // 🔷 Resource Groups
     const hubRg: Module = {
       id: uuid(),
-      type: "resourceGroup",
+      type: "resourcegroup",
       name: "hub-rg",
       position: { x: 100, y: 100 },
-      variables: { resourceGroupName: "hub-rg" },
+      variables: { resourcegroupName: "hub-rg" },
       width: 300,
       height: 260,
     };
 
     const spokeRg: Module = {
       id: uuid(),
-      type: "resourceGroup",
+      type: "resourcegroup",
       name: "spoke-rg",
       position: { x: 500, y: 100 },
-      variables: { resourceGroupName: "spoke-rg" },
+      variables: { resourcegroupName: "spoke-rg" },
       width: 300,
       height: 260,
     };
@@ -39,7 +39,7 @@ export const hubAndSpoke = {
       type: "vnet",
       name: "hub-vnet",
       position: { x: 20, y: 40 },
-      resourceGroup: hubRg.id,
+      resourcegroup: hubRg.id,
       variables: {
         vnetName: "hub-vnet",
         addressSpace: "10.0.0.0/16",
@@ -51,7 +51,7 @@ export const hubAndSpoke = {
       type: "vnet",
       name: "spoke-vnet",
       position: { x: 20, y: 40 },
-      resourceGroup: spokeRg.id,
+      resourcegroup: spokeRg.id,
       variables: {
         vnetName: "spoke-vnet",
         addressSpace: "10.1.0.0/16",
@@ -64,7 +64,7 @@ export const hubAndSpoke = {
       type: "subnet",
       name: "hub-subnet",
       position: { x: 180, y: 40 },
-      resourceGroup: hubRg.id,
+      resourcegroup: hubRg.id,
       variables: {
         subnetName: "hub-subnet",
         addressPrefix: "10.0.1.0/24",
@@ -76,7 +76,7 @@ export const hubAndSpoke = {
       type: "subnet",
       name: "AzureFirewallSubnet",
       position: { x: 240, y: 120 },
-      resourceGroup: hubRg.id,
+      resourcegroup: hubRg.id,
       variables: {
         subnetName: "AzureFirewallSubnet",
         addressPrefix: "10.0.2.0/24",
@@ -88,7 +88,7 @@ export const hubAndSpoke = {
       type: "subnet",
       name: "spoke-subnet",
       position: { x: 180, y: 40 },
-      resourceGroup: spokeRg.id,
+      resourcegroup: spokeRg.id,
       variables: {
         subnetName: "spoke-subnet",
         addressPrefix: "10.1.1.0/24",
@@ -101,7 +101,7 @@ export const hubAndSpoke = {
       type: "nsg",
       name: "hub-nsg",
       position: { x: 180, y: 120 },
-      resourceGroup: hubRg.id,
+      resourcegroup: hubRg.id,
       variables: {
         nsgName: "hub-nsg",
       },
@@ -112,7 +112,7 @@ export const hubAndSpoke = {
       type: "nsg",
       name: "spoke-nsg",
       position: { x: 180, y: 120 },
-      resourceGroup: spokeRg.id,
+      resourcegroup: spokeRg.id,
       variables: {
         nsgName: "spoke-nsg",
       },
@@ -124,7 +124,7 @@ export const hubAndSpoke = {
       type: "firewall",
       name: "hub-fw",
       position: { x: 60, y: 120 },
-      resourceGroup: hubRg.id,
+      resourcegroup: hubRg.id,
       variables: {
         firewallName: "hub-fw",
       },

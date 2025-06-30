@@ -16,7 +16,10 @@ const ProjectTab: React.FC = () => {
 
   const updateTag = (index: number, key: "name" | "value", value: string) => {
     const updatedTags = [...(config.project?.tags ?? [])];
-    updatedTags[index][key] = value;
+    updatedTags[index] = {
+      ...updatedTags[index],
+      [key]: value,
+    };
     update("tags", updatedTags);
   };
 
@@ -39,6 +42,33 @@ const ProjectTab: React.FC = () => {
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
+          <label className="block text-sm font-medium mb-1">Platform</label>
+          <select
+            value={config.project?.platform ?? "azure"}
+            onChange={(e) => update("platform", e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="azure">Azure</option>
+            <option value="aws">AWS</option>
+            <option value="gcp">GCP</option>
+            <option value="onprem">On-Premises</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">IaC Language</label>
+          <select
+            value={config.project?.language ?? "bicep"}
+            onChange={(e) => update("language", e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="bicep">Bicep</option>
+            <option value="terraform">Terraform</option>
+            <option value="ansible">Ansible</option>
+          </select>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium mb-1">Tenant ID</label>
           <input
             type="text"
@@ -58,21 +88,6 @@ const ProjectTab: React.FC = () => {
             onChange={(e) => update("subscriptionId", e.target.value)}
             className="w-full border rounded px-3 py-2"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Platform</label>
-          <select
-            value={config.project?.platform ?? ""}
-            onChange={(e) => update("platform", e.target.value)}
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="">Select Platform</option>
-            <option value="azure">Azure</option>
-            <option value="aws">AWS</option>
-            <option value="gcp">GCP</option>
-            <option value="onprem">On-Premises</option>
-          </select>
         </div>
 
         <div>

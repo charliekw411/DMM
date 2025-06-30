@@ -1,25 +1,19 @@
-// src/components/modules/routetable.ts
-import { RouteTableIcon } from "./icons";
-import { Module, ModuleType } from "./types";
-import { v4 as uuidv4 } from "uuid";
+import { ModuleDefinition } from "./types";
 
-export function createRouteTable(name: string, x: number, y: number): Module {
-  return {
-    id: uuidv4(),
-    type: "routeTable",
-    name,
-    position: { x, y },
-    variables: {
-      name,
-    },
-  };
-}
-
-export default {
+export const moduleDefinition: ModuleDefinition = {
   name: "Route Table",
-  type: "routeTable" as ModuleType,
-  icon: RouteTableIcon,
+  type: "routetable",
   defaultVariables: {
-    name: "rt-main",
+    routeTableName: "rt-default",
+  },
+  variableSchema: {
+    routeTableName: {
+      label: "Route Table Name",
+      type: "string",
+      required: true,
+      description: "The name of the route table",
+    },
   },
 };
+
+export default { moduleDefinition };

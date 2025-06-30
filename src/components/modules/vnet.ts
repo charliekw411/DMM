@@ -1,27 +1,26 @@
-// src/components/modules/vnet.ts
-import { VNetIcon } from "./icons";
-import { Module, ModuleType } from "./types";
-import { v4 as uuidv4 } from "uuid";
+import { ModuleDefinition } from "./types";
 
-export function createVNet(name: string, x: number, y: number): Module {
-  return {
-    id: uuidv4(),
-    type: "vnet",
-    name,
-    position: { x, y },
-    variables: {
-      name,
-      addressSpace: "10.0.0.0/16",
-    },
-  };
-}
-
-export default {
+export const moduleDefinition: ModuleDefinition = {
   name: "Virtual Network",
-  type: "vnet" as ModuleType,
-  icon: VNetIcon,
+  type: "vnet",
   defaultVariables: {
-    name: "vnet-main",
-    addressSpace: "10.0.0.0/16",
+    vnetName: "vnet-hub",
+    addressPrefix: "10.0.0.0/16",
+  },
+  variableSchema: {
+    vnetName: {
+      label: "VNet Name",
+      type: "string",
+      required: true,
+      description: "The name of the Virtual Network",
+    },
+    addressPrefix: {
+      label: "Address Prefix",
+      type: "string",
+      required: true,
+      description: "CIDR range for the VNet (e.g. 10.0.0.0/16)",
+    },
   },
 };
+
+export default { moduleDefinition };

@@ -2,9 +2,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "../context/appContext";
 import { Module } from "../modules/types";
-import { ICONS } from "../modules/icons";
 import { moduleVariableSchemas } from "../modules/variableSchemas";
 import { exportToBicep } from "../../iac/exporter";
+import { moduleIcons } from "../modules/icons";
 
 type ModuleConnection = {
   from: string;
@@ -45,8 +45,8 @@ const ArchitectureDiagramTab: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const modules = config.modules;
-  const resourceGroups = modules.filter((m) => m.type === "resourceGroup");
-  const otherModules = modules.filter((m) => m.type !== "resourceGroup");
+  const resourcegroups = modules.filter((m) => m.type === "resourcegroup");
+  const otherModules = modules.filter((m) => m.type !== "resourcegroup");
 
   const updateModule = (updated: Module) => {
     const updatedModules = modules.map((m) =>
@@ -118,10 +118,10 @@ const ArchitectureDiagramTab: React.FC = () => {
       const newX = e.clientX - offset.x;
       const newY = e.clientY - offset.y;
 
-      const resourceGroups = modules.filter((m) => m.type === "resourceGroup");
-      const containingRG = resourceGroups.find(
+      const resourcegroups = modules.filter((m) => m.type === "resourcegroup");
+      const containingRG = resourcegroups.find(
         (rg) =>
-          dragged.type !== "resourceGroup" &&
+          dragged.type !== "resourcegroup" &&
           newX >= rg.position.x &&
           newY >= rg.position.y &&
           newX <= rg.position.x + (rg.width ?? 300) &&
@@ -134,7 +134,7 @@ const ArchitectureDiagramTab: React.FC = () => {
       const updated = {
         ...dragged,
         position: { x: relativeX, y: relativeY },
-        resourceGroup: containingRG?.id ?? undefined,
+        resourcegroup: containingRG?.id ?? undefined,
       };
 
       setConfig({
@@ -145,7 +145,7 @@ const ArchitectureDiagramTab: React.FC = () => {
 
     if (resizingId) {
       const rg = modules.find((m) => m.id === resizingId);
-      if (!rg || rg.type !== "resourceGroup") return;
+      if (!rg || rg.type !== "resourcegroup") return;
 
       const deltaX = e.clientX - offset.x;
       const deltaY = e.clientY - offset.y;
@@ -172,7 +172,7 @@ const ArchitectureDiagramTab: React.FC = () => {
       const my = (e.clientY - (rect?.top ?? 0)) / zoom;
 
       const target = otherModules.find((mod) => {
-        const rg = resourceGroups.find((r) => r.id === mod.resourceGroup);
+        const rg = resourcegroups.find((r) => r.id === mod.resourcegroup);
         const x = mod.position.x + (rg?.position.x ?? 0);
         const y = mod.position.y + (rg?.position.y ?? 0);
         return (
@@ -186,8 +186,8 @@ const ArchitectureDiagramTab: React.FC = () => {
 
       if (
         target &&
-        draggingFrom.type !== "resourceGroup" &&
-        target.type !== "resourceGroup"
+        draggingFrom.type !== "resourcegroup" &&
+        target.type !== "resourcegroup"
       ) {
         const exists = config.connections?.some(
           (c) => c.from === draggingFrom.id && c.to === target.id
@@ -265,7 +265,7 @@ const ArchitectureDiagramTab: React.FC = () => {
             position: "relative",
           }}
         >
-          {resourceGroups.map((rg) => (
+          {resourcegroups.map((rg) => (
             <div
               key={rg.id}
               className={`absolute border-2 border-blue-400 bg-blue-50 rounded ${
@@ -296,10 +296,10 @@ const ArchitectureDiagramTab: React.FC = () => {
           ))}
 
           {otherModules.map((mod) => {
-            const Icon = ICONS[mod.type];
+            const Icon = moduleIcons[mod.type];
             if (!Icon) return null;
 
-            const rg = resourceGroups.find((r) => r.id === mod.resourceGroup);
+            const rg = resourcegroups.find((r) => r.id === mod.resourcegroup);
             const left = mod.position.x + (rg?.position.x ?? 0);
             const top = mod.position.y + (rg?.position.y ?? 0);
             const isSelected = selectedId === mod.id;
@@ -342,8 +342,8 @@ const ArchitectureDiagramTab: React.FC = () => {
               const to = modules.find((m) => m.id === conn.to);
               if (!from || !to) return null;
 
-              const fromRG = modules.find((r) => r.id === from.resourceGroup);
-              const toRG = modules.find((r) => r.id === to.resourceGroup);
+              const fromRG = modules.find((r) => r.id === from.resourcegroup);
+              const toRG = modules.find((r) => r.id === to.resourcegroup);
 
               const fx = from.position.x + (fromRG?.position.x ?? 0) + 32;
               const fy = from.position.y + (fromRG?.position.y ?? 0) + 32;
@@ -387,11 +387,11 @@ const ArchitectureDiagramTab: React.FC = () => {
               <line
                 x1={
                   draggingFrom.position.x +
-                  (modules.find((r) => r.id === draggingFrom.resourceGroup)?.position.x ?? 0) + 32
+                  (modules.find((r) => r.id === draggingFrom.resourcegroup)?.position.x ?? 0) + 32
                 }
                 y1={
                   draggingFrom.position.y +
-                  (modules.find((r) => r.id === draggingFrom.resourceGroup)?.position.y ?? 0) + 32
+                  (modules.find((r) => r.id === draggingFrom.resourcegroup)?.position.y ?? 0) + 32
                 }
                 x2={mousePos.x}
                 y2={mousePos.y}
@@ -439,16 +439,12 @@ const ArchitectureDiagramTab: React.FC = () => {
                           ...selectedModule,
                           name: newName,
                           variables: updatedVariables,
-                          error: error ?? undefined,
                         });
                       }}
                       className="w-full border rounded px-3 py-1"
                     />
                     {schema?.description && (
                       <p className="text-xs text-gray-500 mt-1">{schema.description}</p>
-                    )}
-                    {selectedModule.error && (
-                      <p className="text-xs text-red-500">{selectedModule.error}</p>
                     )}
                   </div>
                 );

@@ -1,28 +1,27 @@
-// src/components/modules/subnet.ts
-import { SubnetIcon } from "./icons";
-import { Module, ModuleType } from "./types";
-import { v4 as uuidv4 } from "uuid";
+import { ModuleDefinition } from "./types";
+import { moduleIcons } from "./icons";
 
-export function createSubnet(name: string, parentId: string, x: number, y: number): Module {
-  return {
-    id: uuidv4(),
-    type: "subnet",
-    name,
-    position: { x, y },
-    parentId,
-    variables: {
-      name,
-      addressPrefix: "10.0.1.0/24",
-    },
-  };
-}
-
-export default {
+export const moduleDefinition: ModuleDefinition = {
   name: "Subnet",
-  type: "subnet" as ModuleType,
-  icon: SubnetIcon,
+  type: "subnet",
   defaultVariables: {
-    name: "subnet-app",
+    subnetName: "subnet-1",
     addressPrefix: "10.0.1.0/24",
   },
+  variableSchema: {
+    subnetName: {
+      label: "Subnet Name",
+      type: "string",
+      required: true,
+      description: "The name of the subnet",
+    },
+    addressPrefix: {
+      label: "Address Prefix",
+      type: "string",
+      required: true,
+      description: "CIDR range for the subnet (e.g. 10.0.1.0/24)",
+    },
+  },
 };
+
+export default { moduleDefinition };

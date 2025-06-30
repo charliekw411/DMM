@@ -1,34 +1,52 @@
 import React, { createContext, useContext, useState } from "react";
 import { Module } from "../modules/types";
 
-export interface Connection {
+export type IaCLanguage = "bicep" | "terraform" | "ansible";
+
+export interface Tag {
+  name: string;
+  value: string;
+}
+export type Connection = {
   from: string;
   to: string;
-  type?: "subnet-association" | "peering" | "dependency";
-}
+  type: "subnet-association" | "dependency" | "peering";
+};
 
 export interface AppConfig {
   modules: Module[];
-  connections: Connection[]; // added
+  connections: Connection[];
+  project?: {
+    language?: IaCLanguage;
+    tenantId?: string;
+    subscriptionId?: string;
+    platform?: string;
+    environment?: string;
+    location?: string;
+    tags?: Tag[];
+  };
 }
 
 interface AppContextType {
   config: AppConfig;
-  setConfig: (config: AppConfig) => void;
+  setConfig: React.Dispatch<React.SetStateAction<AppConfig>>;
 }
 
-const defaultConfig: AppConfig = {
-  modules: [],
-  connections: []
-};
-
-const AppContext = createContext<AppContextType>({
-  config: defaultConfig,
-  setConfig: () => {}
-});
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [config, setConfig] = useState<AppConfig>(defaultConfig);
+  const [config, setConfig] = useState<AppConfig>({
+    modules: [],
+    connections: [],
+    project: {
+      tenantId: "",
+      subscriptionId: "",
+      platform: "",
+      environment: "",
+      language: "bicep",
+      tags: [],
+    },
+  });
 
   return (
     <AppContext.Provider value={{ config, setConfig }}>
@@ -37,4 +55,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-export const useApp = () => useContext(AppContext);
+export const useApp = (): AppContextType => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error("useApp must be used within an AppProvider");
+  }
+  return context;
+};
+
+export interface ProjectConfig {
+  tenantId?: string;
+  subscriptionId?: string;
+  platform?: "azure" | "aws" | "gcp" | "onprem";
+  language?: "bicep" | "terraform" | "ansible";
+  environment?: string;
+  location?: string;
+  tags?: Tag[];
+}

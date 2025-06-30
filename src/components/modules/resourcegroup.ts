@@ -1,29 +1,26 @@
-// src/components/modules/resourcegroup.ts
-import { ResourceGroupIcon } from "./icons";
-import { Module, ModuleType } from "./types";
-import { v4 as uuidv4 } from "uuid";
+import { ModuleDefinition } from "./types";
 
-export function createResourceGroup(name: string, x: number, y: number): Module {
-  return {
-    id: uuidv4(),
-    type: "resourceGroup",
-    name,
-    position: { x, y },
-    variables: {
-      name,
-      region: "eastus",
-    },
-    width: 320,
-    height: 220,
-  };
-}
-
-export default {
+export const moduleDefinition: ModuleDefinition = {
   name: "Resource Group",
-  type: "resourceGroup" as ModuleType,
-  icon: ResourceGroupIcon,
+  type: "resourcegroup",
   defaultVariables: {
-    name: "rg-main",
-    region: "eastus",
+    resourceGroupName: "rg-networking",
+    location: "eastus",
+  },
+  variableSchema: {
+    resourceGroupName: {
+      label: "Resource Group Name",
+      type: "string",
+      required: true,
+      description: "The name of the Azure Resource Group",
+    },
+    location: {
+      label: "Location",
+      type: "string",
+      required: true,
+      description: "Azure region (e.g. eastus, westus2)",
+    },
   },
 };
+
+export default { moduleDefinition };

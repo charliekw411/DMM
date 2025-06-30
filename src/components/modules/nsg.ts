@@ -1,25 +1,19 @@
-// src/components/modules/nsg.ts
-import { NSGIcon } from "./icons";
-import { Module, ModuleType } from "./types";
-import { v4 as uuidv4 } from "uuid";
+import { ModuleDefinition } from "./types";
 
-export function createNSG(name: string, x: number, y: number): Module {
-  return {
-    id: uuidv4(),
-    type: "nsg",
-    name,
-    position: { x, y },
-    variables: {
-      name,
-    },
-  };
-}
-
-export default {
+export const moduleDefinition: ModuleDefinition = {
   name: "Network Security Group",
-  type: "nsg" as ModuleType,
-  icon: NSGIcon,
+  type: "nsg",
   defaultVariables: {
-    name: "nsg-main",
+    nsgName: "nsg-default",
+  },
+  variableSchema: {
+    nsgName: {
+      label: "NSG Name",
+      type: "string",
+      required: true,
+      description: "The name of the Network Security Group",
+    },
   },
 };
+
+export default { moduleDefinition };

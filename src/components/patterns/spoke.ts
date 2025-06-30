@@ -1,8 +1,5 @@
 // src/components/patterns/spoke.ts
-import { createVNet } from "../modules/vnet";
-import { createSubnet } from "../modules/subnet";
-import { createNSG } from "../modules/nsg";
-import { createResourceGroup } from "../modules/resourcegroup";
+import { createModule } from "../modules/utils";
 import { Module } from "../modules/types";
 
 export const name = "Spoke Network";

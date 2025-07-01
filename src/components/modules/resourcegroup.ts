@@ -3,9 +3,9 @@ import { ModuleDefinition } from "./types";
 export const moduleDefinition: ModuleDefinition = {
   name: "Resource Group",
   type: "resourcegroup",
-  defaultVariables: {
-    resourceGroupName: "rg-networking",
-    location: "eastus",
+  initialVariables: {
+    resourceGroupName: "rg-",
+    location: "AustraliaEast",
   },
   variableSchema: {
     resourceGroupName: {

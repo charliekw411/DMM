@@ -1,9 +1,10 @@
 import { ModuleDefinition } from "./types";
+import { validateCidr } from "./utils";
 
 export const moduleDefinition: ModuleDefinition = {
   name: "Virtual Network",
   type: "vnet",
-  defaultVariables: {
+  initialVariables: {
     vnetName: "vnet-hub",
     addressPrefix: "10.0.0.0/16",
   },
@@ -19,6 +20,7 @@ export const moduleDefinition: ModuleDefinition = {
       type: "string",
       required: true,
       description: "CIDR range for the VNet (e.g. 10.0.0.0/16)",
+      validate: validateCidr,
     },
   },
 };

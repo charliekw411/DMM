@@ -3,7 +3,7 @@ import { ModuleDefinition } from "./types";
 export const moduleDefinition: ModuleDefinition = {
   name: "Network Security Group",
   type: "nsg",
-  defaultVariables: {
+  initialVariables: {
     nsgName: "nsg-default",
   },
   variableSchema: {

@@ -12,10 +12,23 @@ const ModulesTab: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
 
   const handleCreate = (values: Record<string, string>) => {
-    if (!selectedModule) return;
+  if (!selectedModule) return;
 
+  const baseX = 100;
+  const baseY = 100;
+
+  if (selectedModule.createBundle) {
+    // If module is a mini-pattern (e.g., Firewall)
+    const { modules, connections } = selectedModule.createBundle(baseX, baseY, values);
+
+    setConfig({
+      ...config,
+      modules: [...config.modules, ...modules],
+      connections: [...(config.connections ?? []), ...connections],
+    });
+  } else {
     const newId = uuid();
-    const created = createModule(selectedModule.type, newId, 100, 100, values);
+    const created = createModule(selectedModule.type, newId, baseX, baseY, values);
 
     const nameKey = Object.keys(values).find((k) => k.toLowerCase().includes("name"));
     const updatedName = nameKey ? values[nameKey] : selectedModule.name;
@@ -31,10 +44,12 @@ const ModulesTab: React.FC = () => {
         },
       ],
     });
+  }
 
-    setSelectedModule(null);
-    setShowModal(false);
-  };
+  setSelectedModule(null);
+  setShowModal(false);
+};
+
 
   return (
     <div className="p-6">
@@ -66,7 +81,7 @@ const ModulesTab: React.FC = () => {
         <ModuleConfigModal
           title={`Configure ${selectedModule.name}`}
           schema={selectedModule.variableSchema}
-          initialValues={selectedModule.defaultVariables ?? {}}
+          initialValues={selectedModule.initialVariables ?? {}}
           onSubmit={handleCreate}
           onCancel={() => {
             setSelectedModule(null);

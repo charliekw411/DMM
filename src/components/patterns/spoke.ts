@@ -1,53 +1,73 @@
-// src/components/patterns/spoke.ts
-import { createModule } from "../modules/utils";
-import { Module } from "../modules/types";
+import { v4 as uuidv4 } from "uuid";
+import type { PatternModule } from "./types";
+import type { Module, Connection } from "../modules/types";
+import { validateCidr, getAutoName, getDefaultCidr } from "../modules/utils";
 
-export const name = "Spoke Network";
-export const type = "spoke";
-export const inputs = ["name"];
+const spoke: PatternModule = {
+  name: "Spoke Network",
+  description: "Creates a VNet and Subnet for a typical spoke in Hub & Spoke architecture.",
+  type: "spoke",
+  initialVariables: {
+    vnetName: "spoke-vnet",
+    subnetName: "spoke-subnet",
+    addressPrefix: "10.1.0.0/16",
+    subnetPrefix: "10.1.0.0/24",
+  },
+  variableSchema: {
+    vnetName: { label: "VNet Name", type: "string", required: true },
+    subnetName: { label: "Subnet Name", type: "string", required: true },
+    addressPrefix: {
+      label: "VNet CIDR",
+      type: "string",
+      required: true,
+      validate: validateCidr,
+    },
+    subnetPrefix: {
+      label: "Subnet CIDR",
+      type: "string",
+      required: true,
+      validate: validateCidr,
+    },
+  },
+  create: (values): { modules: Module[]; connections: Connection[] } => {
+    const modules: Module[] = [];
 
-export function create(values: Record<string, string>): {
-  modules: Module[];
-  connections: { from: string; to: string; type: "subnet-association" | "dependency" }[];
-} {
-  const modules: Module[] = [];
-  const connections: { from: string; to: string; type: "subnet-association" | "dependency" }[] = [];
+    const vnetCount = modules.filter((m) => m.type === "vnet").length;
+    const vnetName = getAutoName("vnet", modules);
+    const vnetId = uuidv4();
+    modules.push({
+      id: vnetId,
+      type: "vnet",
+      name: vnetName,
+      position: { x: 100, y: 100 },
+      variables: {
+        vnetName: values.vnetName || vnetName,
+        cidr: values.addressPrefix || getDefaultCidr("vnet", vnetCount),
+      },
+    });
 
-  const startX = 200;
-  const startY = 200;
+    const subnetCount = modules.filter((m) => m.type === "subnet").length;
+    const subnetName = getAutoName("subnet", modules);
+    const subnetId = uuidv4();
+    modules.push({
+      id: subnetId,
+      type: "subnet",
+      name: subnetName,
+      position: { x: 300, y: 100 },
+      variables: {
+        subnetName: values.subnetName || subnetName,
+        cidr: values.subnetPrefix || getDefaultCidr("subnet", subnetCount),
+      },
+    });
 
-  // Resource Group
-  const rg = createResourceGroup(`${values.name}-rg`, startX, startY);
-  modules.push(rg);
+    const connections: Connection[] = [
+      { from: subnetId, to: vnetId, type: "subnet-association" },
+    ];
 
-  // VNet
-  const vnet = createVNet(`${values.name}-vnet`, startX + 40, startY + 40);
-  vnet.resourceGroup = rg.id;
-  modules.push(vnet);
-
-  // Subnet
-  const subnet = createSubnet(`${values.name}-subnet`, vnet.id, startX + 120, startY + 120);
-  subnet.resourceGroup = rg.id;
-  modules.push(subnet);
-
-  // NSG
-  const nsg = createNSG(`${values.name}-nsg`, startX + 80, startY + 180);
-  nsg.resourceGroup = rg.id;
-  modules.push(nsg);
-
-  // Connections
-  connections.push(
-    { from: subnet.id, to: vnet.id, type: "subnet-association" },
-    { from: subnet.id, to: nsg.id, type: "dependency" }
-  );
-
-  return { modules, connections };
-}
-
-export default {
-  name,
-  type,
-  inputs,
-  description: "Creates a VNet, Subnet, and NSG inside a Resource Group.",
-  create,
+    return { modules, connections };
+  },
 };
+
+export default spoke;
+export const createSpokePattern = spoke.create;
+export const initialValues = spoke.initialVariables;

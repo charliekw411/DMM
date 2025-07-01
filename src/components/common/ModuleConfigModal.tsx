@@ -1,3 +1,4 @@
+// src/components/common/ModuleConfigModal.tsx
 import React, { useState } from "react";
 
 type FieldType = "string" | "number" | "boolean" | "select";
@@ -7,7 +8,8 @@ interface FieldSchema {
   type: FieldType;
   required?: boolean;
   description?: string;
-  options?: string[]; // for type === 'select'
+  options?: string[]; // for select
+  validate?: (value: string) => true | string; // ✅ new: custom validation
 }
 
 export interface VariableSchema {
@@ -41,8 +43,15 @@ const ModuleConfigModal: React.FC<Props> = ({
     const newErrors: Record<string, string> = {};
     for (const key in schema) {
       const field = schema[key];
-      if (field.required && !formValues[key]?.trim()) {
+      const value = formValues[key];
+
+      if (field.required && !value?.trim()) {
         newErrors[key] = `${field.label} is required`;
+      } else if (field.validate) {
+        const result = field.validate(value);
+        if (result !== true) {
+          newErrors[key] = result;
+        }
       }
     }
 

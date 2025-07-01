@@ -5,21 +5,21 @@ export type ModuleType =
   | "subnet"
   | "nsg"
   | "firewall"
-  | "resourcegroup"
-  | "routetable";
+  | "publicip"
+  | "routetable"
+  | "resourcegroup";
 
 export type ConnectionType = "subnet-association" | "dependency" | "peering";
 
 export interface Module {
   id: string;
-  name: string;
   type: ModuleType;
+  name: string;
   position: { x: number; y: number };
-  width?: number;                     
+  width?: number;
   height?: number;
-
-  variables: Record<string, string>;
   resourcegroup?: string;
+  variables: Record<string, any>;
 }
 
 export interface Connection {
@@ -29,8 +29,25 @@ export interface Connection {
 }
 
 export interface ModuleDefinition {
+  type: string;
   name: string;
-  type: ModuleType;
-  defaultVariables?: Record<string, string>;
+  initialVariables: Record<string, any>;
   variableSchema: VariableSchema;
+  avm?: {
+    moduleName: string;
+    versionKey: string;
+    outputVars?: string[];
+  };
+  createBundle?: (
+    x: number,
+    y: number,
+    values: Record<string, string>
+  ) => {
+    modules: Module[];
+    connections: {
+      from: string;
+      to: string;
+      type: string;
+    }[];
+  };
 }

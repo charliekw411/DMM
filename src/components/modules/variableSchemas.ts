@@ -1,71 +1,107 @@
-// src/components/modules/variableSchemas.ts
+import { VariableSchema } from "../common/ModuleConfigModal";
 
-export type VariableField = {
-  label: string;
-  description?: string;
-  type: "text" | "number" | "dropdown" | "checkbox";
-  options?: string[]; // for dropdown
-  validate?: (val: string) => string | null; // returns error message or null
-};
-
-export const moduleVariableSchemas: Record<
-  string,
-  Record<string, VariableField>
-> = {
+export const moduleVariableSchemas: Record<string, VariableSchema> = {
   vnet: {
-    name: {
+    vnetName: {
       label: "VNet Name",
       description: "The name of your virtual network",
-      type: "text",
-      validate: (v) => (v.trim() === "" ? "Name is required" : null),
-    },
-    addressSpace: {
-      label: "Address Space",
-      description: "CIDR range, e.g., 10.0.0.0/16",
-      type: "text",
+      type: "string",
+      required: true,
       validate: (v) =>
-        /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(v)
-          ? null
-          : "Invalid CIDR format",
+        typeof v !== "string" || v.trim() === "" ? "Name is required" : true,
+    },
+    cidr: {
+      label: "Address Space (CIDR)",
+      description: "e.g., 10.0.0.0/16",
+      type: "string",
+      required: true,
+      validate: (v) =>
+        typeof v !== "string" || !/^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(v)
+          ? "Invalid CIDR format"
+          : true,
     },
   },
+
   subnet: {
-    name: {
-        label: "Subnet Name",
-        type: "text",
-    },
-    addressPrefix: {
-        label: "Subnet Address",
-        description: "CIDR prefix, e.g., 10.0.1.0/24",
-        type: "text",
-        validate: (v) =>
-        /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(v)
-            ? null
-            : "Invalid CIDR format",
-        },
-    },
-  firewall: {
-    name: {
-      label: "Firewall Name",
-      type: "text",
-    },
-    subnet: {
+    subnetName: {
       label: "Subnet Name",
-      type: "text",
-      description: "Must be AzureFirewallSubnet",
+      description: "The name of your subnet",
+      type: "string",
+      required: true,
       validate: (v) =>
-        v === "AzureFirewallSubnet"
-          ? null
-          : "Firewall subnet must be 'AzureFirewallSubnet'",
+        typeof v !== "string" || v.trim() === "" ? "Name is required" : true,
     },
-    addressPrefix: {
-        label: "Subnet Address",
-        description: "CIDR prefix, e.g., 10.0.1.0/24",
-        type: "text",
-        validate: (v) =>
-        /^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(v)
-            ? null
-            : "Invalid CIDR format",
-        },
+    cidr: {
+      label: "Subnet Address Prefix (CIDR)",
+      description: "e.g., 10.0.1.0/24",
+      type: "string",
+      required: true,
+      validate: (v) =>
+        typeof v !== "string" || !/^(\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(v)
+          ? "Invalid CIDR format"
+          : true,
+    },
+  },
+
+  publicip: {
+    publicIpName: {
+      label: "Public IP Name",
+      type: "string",
+      required: true,
+      validate: (v) =>
+        typeof v !== "string" || v.trim() === "" ? "Name is required" : true,
+    },
+    sku: {
+      label: "SKU",
+      type: "select",
+      required: true,
+      options: ["Standard", "Basic"],
+    },
+    allocationMethod: {
+      label: "Allocation Method",
+      type: "select",
+      required: true,
+      options: ["Static", "Dynamic"],
+    },
+  },
+
+  firewall: {
+    firewallName: {
+      label: "Firewall Name",
+      type: "string",
+      required: true,
+      validate: (v) =>
+        typeof v !== "string" || v.trim() === "" ? "Name is required" : true,
+    },
+  },
+
+  nsg: {
+    nsgName: {
+      label: "NSG Name",
+      type: "string",
+      required: true,
+      validate: (v) =>
+        typeof v !== "string" || v.trim() === "" ? "Name is required" : true,
+    },
+  },
+
+  routetable: {
+    routeTableName: {
+      label: "Route Table Name",
+      type: "string",
+      required: true,
+      validate: (v) =>
+        typeof v !== "string" || v.trim() === "" ? "Name is required" : true,
+    },
+  },
+
+  resourcegroup: {
+    resourceGroupName: {
+      label: "Resource Group Name",
+      type: "string",
+      required: true,
+      validate: (v) =>
+        typeof v !== "string" || v.trim() === "" ? "Name is required" : true,
+    },
   },
 };

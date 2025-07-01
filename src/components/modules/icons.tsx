@@ -10,6 +10,7 @@ import {
   FaNetworkWired,
   FaBox,
   FaShieldAlt,
+  FaGlobe,
 } from "react-icons/fa";
 
 export const moduleIcons: Record<string, IconType> = {
@@ -21,4 +22,5 @@ export const moduleIcons: Record<string, IconType> = {
   routetable: MdOutlineRouter,
   storage: MdOutlineStorage,
   cloud: MdCloud,
+  publicip: FaGlobe,
 };

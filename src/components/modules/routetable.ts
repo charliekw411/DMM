@@ -3,7 +3,7 @@ import { ModuleDefinition } from "./types";
 export const moduleDefinition: ModuleDefinition = {
   name: "Route Table",
   type: "routetable",
-  defaultVariables: {
+  initialVariables: {
     routeTableName: "rt-default",
   },
   variableSchema: {

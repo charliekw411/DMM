@@ -1,11 +1,11 @@
 import { ModuleDefinition } from "./types";
-import { moduleIcons } from "./icons";
+import { validateCidr } from "./utils";
 
 export const moduleDefinition: ModuleDefinition = {
   name: "Subnet",
   type: "subnet",
-  defaultVariables: {
-    subnetName: "subnet-1",
+  initialVariables: {
+    subnetName: "default",
     addressPrefix: "10.0.1.0/24",
   },
   variableSchema: {
@@ -20,6 +20,7 @@ export const moduleDefinition: ModuleDefinition = {
       type: "string",
       required: true,
       description: "CIDR range for the subnet (e.g. 10.0.1.0/24)",
+      validate: validateCidr,
     },
   },
 };

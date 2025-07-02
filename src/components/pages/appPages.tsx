@@ -2,7 +2,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "../context/appContext";
-import Navbar from "../layout/navbar";
+import Navbar from "../layout/Navbar";
 import ProjectTab from "../tabs/project";
 import ModulesTab from "../tabs/modules";
 import ArchitectureDiagramTab from "../tabs/architectureDiagram";

@@ -152,6 +152,21 @@ const hubAndSpoke: PatternModule = {
       resourcegroup: hubRg.id,
       variables: {
         firewallName: "hub-fw",
+        vnetName: values.hubName || hubVnetName,
+        vnetResourceGroup: "hub-rg",
+      },
+    };
+
+    const publicIp: Module = {
+      id: uuid(),
+      type: "publicip",
+      name: "hub-fw-ip",
+      position: { x: 60, y: 180 },
+      resourcegroup: hubRg.id,
+      variables: { 
+        publicIpName: "hub-fw-ip",
+        sku: "Standard",
+        allocationMethod: "Static",
       },
     };
 
@@ -165,7 +180,8 @@ const hubAndSpoke: PatternModule = {
       fwSubnet,
       hubNsg,
       spokeNsg,
-      firewall
+      firewall,
+      publicIp 
     );
 
     const connections: Connection[] = [
@@ -176,6 +192,7 @@ const hubAndSpoke: PatternModule = {
       { from: spokeSubnet.id, to: spokeVnet.id, type: "subnet-association" },
       { from: spokeSubnet.id, to: spokeNsg.id, type: "dependency" },
       { from: spokeVnet.id, to: hubVnet.id, type: "peering" },
+      { from: publicIp.id, to: firewall.id, type: "dependency" },
     ];
 
     return { modules, connections };

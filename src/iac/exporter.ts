@@ -1,8 +1,8 @@
 // src/iac/exporter.ts
 import { AppConfig, Connection } from "../components/context/appContext";
-import { generateBicepModule } from "./languages/bicep";
 import { Module } from "../components/modules/types";
 import { moduleVersions } from "./moduleVersions";
+import { generateBicepModule } from "./generateBicepModule";
 
 type GroupedModules = Record<string, Module[]>;
 
@@ -47,11 +47,12 @@ function getNSGLinks(modules: Module[], connections: Connection[]) {
     ) {
       const subnet = from.type === "subnet" ? from : to;
       const nsg = from.type === "nsg" ? from : to;
-      nsgMap[subnet.id] = nsg.name;
+      nsgMap[subnet.id] = nsg.variables?.nsgName ?? nsg.name;
     }
   }
   return nsgMap;
 }
+
 export function exportToBicep(config: AppConfig): string {
   const { modules, connections, project } = config;
 
@@ -100,23 +101,25 @@ ${tagsBlock || "  // no tags"}
     .join("\n\n");
 
   const moduleResources = Object.entries(groupedModules)
-  .filter(([rg]) => rg !== "default")
-  .flatMap(([rgId, mods]) => {
-    const rg = resourceGroups.find((r) => r.id === rgId);
-    if (!rg) return [];
+    .filter(([rg]) => rg !== "default")
+    .flatMap(([rgId, mods]) => {
+      const rg = resourceGroups.find((r) => r.id === rgId);
+      if (!rg) return [];
 
-    const rgDeploymentName = rg.name.replace(/[^a-zA-Z0-9]/g, "") + "Deployment";
+      const rgDeploymentName = rg.name.replace(/[^a-zA-Z0-9]/g, "") + "Deployment";
 
-    return mods
-      .filter((m) => m.type !== "resourcegroup")
-      .map((mod) =>
-        generateBicepModule(mod, `resourceGroup('${rg.name}')`, {
-          subnets: subnetsByVnet[mod.name],
-          nsgBySubnet: nsgLinks,
-          dependsOn: [rgDeploymentName],
-        })
-      );
-  })
-  .join("\n\n");
+      return mods
+        .filter((m) => m.type !== "resourcegroup")
+        .map((mod) =>
+          generateBicepModule(mod, {
+            scope: `resourceGroup('${rg.name}')`,
+            subnets: subnetsByVnet[mod.name],
+            nsgBySubnet: nsgLinks,
+            dependsOn: [rgDeploymentName],
+          })
+        );
+    })
+    .join("\n\n");
+
   return [paramBlock.trim(), rgResources, moduleResources].join("\n\n");
 }
